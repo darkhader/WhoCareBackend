@@ -4,7 +4,8 @@ const cors = require('cors');
 const session = require('express-session')
 const app = express();
 var request = require('request');
-var querystring = require('querystring');
+const fs = require('fs')
+const https = require('https')
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
@@ -19,12 +20,13 @@ app.use(session({
     }
 }))
 app.use(cors({
-    origin: ["http://localhost:3000"
+    origin: ["https://localhost:3000"
     ], credentials: true
 }));
 
-var myRouter = express.Router();
-myRouter.route('/testRoute')
+var anaRouter = express.Router();
+var userRouter = express.Router();
+anaRouter.route('/anaRoute')
     .post(function (req, res) {
         console.log("req", JSON.stringify(req.body));
         request({
@@ -34,7 +36,7 @@ myRouter.route('/testRoute')
             headers: {
                 'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NjMxMjY3MjgsImlhdCI6MTU3NjcyNjcyMywic3ViIjoiZ3Vlc3QifQ.iHeDDkHYeNUXyKaUg6mGzdWzSpLXXmCUlLhz9TDzhrg',
                 "Content-Type": "application/json"
-        
+
 
             }
         }, function (error, response, body) {
@@ -42,9 +44,33 @@ myRouter.route('/testRoute')
 
             console.log("body", body);
 
-
             if (!error && response.statusCode == 200) {
-                res.json(body);
+                res.json({ success: 1,body });
+            }
+            else {
+                console.log("error", error);
+
+            }
+        })
+    });
+userRouter.route('/userRoute')
+    .post(function (req, res) {
+        request({
+            method: 'GET',
+            body: JSON.stringify(req.body),
+            uri: 'reader_habit.ngrok.io/v1/facebook/user/profile',
+            headers: {
+                'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NjMxMjY3MjgsImlhdCI6MTU3NjcyNjcyMywic3ViIjoiZ3Vlc3QifQ.iHeDDkHYeNUXyKaUg6mGzdWzSpLXXmCUlLhz9TDzhrg',
+                "Content-Type": "application/json"
+            }
+        }, function (error, response, body) {
+
+
+            console.log("body", body);
+
+    
+            if (!error && response.statusCode == 200) {
+                res.json({ success: 1,body });
             }
             else {
                 console.log("error", error);
@@ -53,12 +79,13 @@ myRouter.route('/testRoute')
         })
     });
 
-app.use('/api', myRouter);
+app.use('/api', anaRouter);
 // Middleware
-
-
 const port = process.env.PORT || 9999;
-app.listen(port, (err) => {
-    if (err) console.log(err)
-    else console.log("Listen at port " + port);
-});
+https.createServer({
+    key: fs.readFileSync('server.key'),
+    cert: fs.readFileSync('server.cert')
+}, app)
+    .listen(port, function () {
+        console.log("Listen at port " + port)
+    })
