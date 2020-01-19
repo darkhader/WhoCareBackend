@@ -19,6 +19,7 @@ app.use(session({
         maxAge: 7 * 24 * 60 * 60 * 1000
     }
 }))
+//confix link o day 
 app.use(cors({
     origin: ["https://localhost:3000"
     ], credentials: true
@@ -80,12 +81,17 @@ userRouter.route('/userRoute')
     });
 
 app.use('/api', anaRouter);
+app.use('/api', userRouter);
 // Middleware
 const port = process.env.PORT || 9999;
-https.createServer({
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert')
-}, app)
-    .listen(port, function () {
-        console.log("Listen at port " + port)
-    })
+app.listen(port, (err) => {
+	if(err) console.log(err)
+	else console.log("Listen at port " + port);
+});
+// https.createServer({
+//     key: fs.readFileSync('server.key'),
+//     cert: fs.readFileSync('server.cert')
+// }, app)
+//     .listen(port, function () {
+//         console.log("Listen at port " + port)
+//     })
